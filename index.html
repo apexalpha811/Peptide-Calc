@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peptide Calculator — Reconstitution & Injection Guide</title>
+<style>
+  :root {
+    --bg: #0f1620;
+    --bg-card: #1a2332;
+    --bg-elevated: #243044;
+    --border: #2d3a52;
+    --text: #e8edf5;
+    --text-dim: #94a3b8;
+    --accent: #5eead4;
+    --accent-dim: #14b8a6;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --success: #4ade80;
+    --liquid: #7dd3fc;
+    --peptide: #fbbf24;
+    --skin: #f5d5b1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0f1620 0%, #1a2332 100%);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+    padding: clamp(8px, 2vw, 24px);
+    overflow-x: hidden;
+  }
+  .container { max-width: 1100px; margin: 0 auto; width: 100%; }
+  header {
+    text-align: center;
+    margin-bottom: clamp(16px, 3vw, 28px);
+    padding: clamp(16px, 3vw, 24px);
+    background: var(--bg-card);
+    border-radius: clamp(10px, 2vw, 16px);
+    border: 1px solid var(--border);
+  }
+  h1 {
+    font-size: clamp(20px, 5vw, 28px);
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--liquid) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  .subtitle { color: var(--text-dim); font-size: clamp(12px, 2.5vw, 14px); }
+  .disclaimer {
+    background: rgba(248, 113, 113, 0.08);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    border-radius: 10px;
+    padding: clamp(10px, 2vw, 12px) clamp(12px, 2vw, 16px);
+    margin-top: 14px;
+    font-size: clamp(12px, 2.4vw, 13px);
+    color: #fca5a5;
+  }
+  .step-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 20px;
+    padding: clamp(6px, 1.5vw, 10px);
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .step-btn {
+    flex: 1 1 auto;
+    min-width: 110px;
+    padding: clamp(8px, 1.8vw, 10px) clamp(8px, 1.8vw, 14px);
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: clamp(11px, 2.4vw, 13px);
+    font-weight: 600;
+    transition: all 0.2s;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .step-btn:hover { background: var(--bg-elevated); color: var(--text); }
+  .step-btn.active {
+    background: var(--accent-dim);
+    color: #022c22;
+    border-color: var(--accent);
+  }
+  .step-btn .step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    margin-right: 6px;
+    font-size: 12px;
+  }
+  .step-btn.active .step-num { background: rgba(0,0,0,0.2); }
+  .step-btn.completed .step-num { background: var(--success); color: #022c22; }
+  .panel {
+    display: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: clamp(10px, 2vw, 16px);
+    padding: clamp(14px, 3vw, 24px);
+    animation: fadeIn 0.4s ease;
+  }
+  .panel.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .panel h2 {
+    font-size: clamp(18px, 4vw, 22px);
+    margin-bottom: 8px;
+    color: var(--accent);
+    line-height: 1.25;
+  }
+  .panel-desc { color: var(--text-dim); margin-bottom: 20px; font-size: clamp(13px, 2.6vw, 14px); }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(14px, 3vw, 24px);
+  }
+  @media (max-width: 860px) { .grid-2 { grid-template-columns: 1fr; } }
+  .input-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: clamp(14px, 2.5vw, 18px);
+  }
+  .input-card h3 { font-size: clamp(14px, 3vw, 16px); margin-bottom: 14px; color: var(--accent); }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: clamp(12px, 2.5vw, 13px);
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: clamp(10px, 2vw, 12px);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: clamp(14px, 2.6vw, 15px);
+    font-family: inherit;
+    min-height: 44px;
+  }
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(94, 234, 212, 0.15);
+  }
+  .field .hint { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  .results {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: clamp(14px, 2.5vw, 18px);
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-label { font-size: clamp(12px, 2.5vw, 13px); color: var(--text-dim); }
+  .result-value {
+    font-size: clamp(16px, 3.5vw, 18px);
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .result-value.large { font-size: clamp(20px, 5vw, 24px); }
+  .table-wrap {
+    margin-top: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(12px, 2.4vw, 13px);
+    min-width: 520px;
+  }
+  th, td {
+    padding: clamp(8px, 1.8vw, 10px) clamp(10px, 2vw, 12px);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    font-size: clamp(11px, 2.2vw, 12px);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    font-weight: 600;
+    background: var(--bg-elevated);
+    position: sticky;
+    top: 0;
+  }
+  td.numeric { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; white-space: nowrap; }
+  .recommended { background: rgba(94, 234, 212, 0.08); }
+  .recommended td:first-child::before {
+    content: '★ ';
+    color: var(--accent);
+  }
+  .animation-stage {
+    background: linear-gradient(180deg, #0a1018 0%, #1a2332 100%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: clamp(12px, 2.5vw, 20px);
+    min-height: clamp(260px, 50vw, 360px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .animation-stage svg { width: 100%; height: auto; max-height: 340px; }
+  .controls {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  button.btn {
+    padding: clamp(10px, 2vw, 12px) clamp(14px, 3vw, 18px);
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: #022c22;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: clamp(12px, 2.5vw, 13px);
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.2s;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  button.btn:hover { background: var(--accent); transform: translateY(-1px); }
+  button.btn.secondary {
+    background: var(--bg-elevated);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  button.btn.secondary:hover { background: var(--border); }
+  button.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .step-instructions {
+    background: var(--bg-elevated);
+    border-left: 3px solid var(--accent);
+    padding: clamp(12px, 2.5vw, 14px) clamp(14px, 3vw, 18px);
+    border-radius: 0 8px 8px 0;
+    margin-top: 16px;
+  }
+  .step-instructions h4 { font-size: clamp(13px, 2.8vw, 14px); margin-bottom: 8px; color: var(--accent); }
+  .step-instructions ol { margin-left: 18px; font-size: clamp(12px, 2.6vw, 13px); }
+  .step-instructions ol li { margin-bottom: 6px; color: var(--text); }
+  .checklist {
+    list-style: none;
+    margin: 12px 0;
+  }
+  .checklist li {
+    padding: clamp(10px, 2.5vw, 12px) clamp(12px, 2.5vw, 14px);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: clamp(12px, 2.6vw, 13px);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .checklist li:hover { border-color: var(--accent); }
+  .checklist li.checked {
+    background: rgba(74, 222, 128, 0.06);
+    border-color: rgba(74, 222, 128, 0.4);
+  }
+  .checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    margin-top: 1px;
+  }
+  .checked .checkbox {
+    background: var(--success);
+    border-color: var(--success);
+  }
+  .checked .checkbox::after {
+    content: '✓';
+    color: #022c22;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .warn-box {
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    color: #fcd34d;
+  }
+  .warn-box strong { color: var(--warn); }
+  .danger-box {
+    background: rgba(248, 113, 113, 0.08);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    color: #fca5a5;
+  }
+  .info-box {
+    background: rgba(94, 234, 212, 0.06);
+    border: 1px solid rgba(94, 234, 212, 0.25);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    color: #99f6e4;
+  }
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: clamp(18px, 3vw, 24px);
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .nav-buttons .btn { flex: 1 1 auto; min-width: 120px; }
+  .errors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .error-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--danger);
+    border-radius: 8px;
+    padding: clamp(12px, 2.5vw, 14px);
+    font-size: clamp(12px, 2.5vw, 13px);
+  }
+  .error-card h5 { color: var(--danger); margin-bottom: 6px; font-size: 13px; }
+  .error-card p { color: var(--text-dim); }
+  .error-card .fix { color: var(--success); margin-top: 6px; font-size: 12px; }
+  .progress-bar {
+    height: 4px;
+    background: var(--bg-elevated);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 14px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--liquid) 100%);
+    transition: width 0.5s ease;
+  }
+  svg { display: block; max-width: 100%; height: auto; }
+  .anim-label {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: clamp(11px, 2.4vw, 12px);
+    color: var(--text);
+    white-space: nowrap;
+    max-width: calc(100% - 24px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pulse {
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  .legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    font-size: clamp(11px, 2.3vw, 12px);
+    color: var(--text-dim);
+    justify-content: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 14px; height: 14px; border-radius: 3px; }
+
+  /* Input + unit toggle */
+  .input-with-unit {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+  }
+  .input-with-unit input {
+    flex: 1;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
+  }
+  .unit-toggle {
+    display: inline-flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .unit-toggle button {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 0 clamp(10px, 2.5vw, 14px);
+    font-size: clamp(12px, 2.5vw, 13px);
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    min-width: 44px;
+  }
+  .unit-toggle button.active {
+    background: var(--accent-dim);
+    color: #022c22;
+  }
+  .unit-toggle button:not(.active):hover {
+    background: var(--bg-elevated);
+    color: var(--text);
+  }
+
+  /* Draw-volume calculator card */
+  .draw-calc {
+    background: linear-gradient(135deg, rgba(94, 234, 212, 0.08), rgba(125, 211, 252, 0.06));
+    border: 1px solid rgba(94, 234, 212, 0.35);
+    border-radius: 12px;
+    padding: clamp(14px, 2.5vw, 18px);
+    margin-top: clamp(16px, 3vw, 24px);
+  }
+  .draw-calc h3 {
+    font-size: clamp(15px, 3.2vw, 17px);
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .draw-calc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: end;
+  }
+  @media (max-width: 540px) { .draw-calc-grid { grid-template-columns: 1fr; } }
+  .draw-result-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(14px, 3vw, 18px);
+    margin-top: 14px;
+    text-align: center;
+  }
+  .draw-result-main {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .draw-result-main > div { flex: 1 1 130px; }
+  .draw-big-value {
+    font-size: clamp(28px, 7vw, 38px);
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .draw-big-unit {
+    font-size: clamp(13px, 2.6vw, 14px);
+    color: var(--text-dim);
+    margin-top: 2px;
+    font-weight: 500;
+  }
+  .draw-divider {
+    color: var(--text-dim);
+    font-size: 14px;
+    align-self: center;
+  }
+  /* Visual syringe markings */
+  .syringe-viz {
+    width: 100%;
+    max-width: 360px;
+    height: 60px;
+    margin: 14px auto 0;
+    position: relative;
+  }
+  .syringe-viz svg { width: 100%; height: 100%; }
+  /* Mobile-specific tweaks */
+  @media (max-width: 480px) {
+    .step-btn .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 4px;
+    }
+    .step-btn { font-size: 11px; min-width: 90px; padding: 8px 6px; }
+    .checklist li { font-size: 12px; }
+    th, td { padding: 8px 8px; }
+    .panel { padding: 14px; }
+    header { padding: 16px 12px; }
+  }
+  /* Larger screens — comfortable spacing */
+  @media (min-width: 1200px) {
+    .container { max-width: 1200px; }
+  }
+  /* Tablet portrait — keep grid-2 single column for breathing room */
+  @media (min-width: 481px) and (max-width: 860px) {
+    .errors-grid { grid-template-columns: 1fr 1fr; }
+  }
+  /* Print friendly */
+  @media print {
+    body { background: white; color: black; padding: 0; }
+    .step-nav, .controls, .nav-buttons { display: none; }
+    .panel { display: block !important; page-break-after: always; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Peptide Calculator</h1>
+    <p class="subtitle">Step-by-step reconstitution &amp; injection guide with dosage calculator</p>
+    <div class="disclaimer">
+      <strong>Important:</strong> This is an educational reference. Always follow the guidance of a licensed medical professional. Peptides for human use must be prescribed and monitored by a qualified clinician.
+    </div>
+  </header>
+
+  <nav class="step-nav" id="stepNav">
+    <button class="step-btn active" data-step="0"><span class="step-num">1</span>Calculator</button>
+    <button class="step-btn" data-step="1"><span class="step-num">2</span>Supplies</button>
+    <button class="step-btn" data-step="2"><span class="step-num">3</span>Draw Water</button>
+    <button class="step-btn" data-step="3"><span class="step-num">4</span>Reconstitute</button>
+    <button class="step-btn" data-step="4"><span class="step-num">5</span>Mix &amp; Inspect</button>
+    <button class="step-btn" data-step="5"><span class="step-num">6</span>Inject</button>
+    <button class="step-btn" data-step="6"><span class="step-num">7</span>Common Errors</button>
+  </nav>
+
+  <!-- STEP 1: CALCULATOR -->
+  <section class="panel active" data-panel="0">
+    <h2>Dosage Calculator</h2>
+    <p class="panel-desc">Enter how much peptide is in your vial and how much bacteriostatic water you added. We'll calculate your resulting concentration and exactly how much to draw per dose.</p>
+
+    <div class="grid-2">
+      <div class="input-card">
+        <h3>Step 1 · Reconstitution</h3>
+        <div class="field">
+          <label for="vialMg">Peptide vial strength (mg)</label>
+          <input type="number" id="vialMg" value="5" min="0.1" step="0.1" inputmode="decimal">
+          <div class="hint">Total mg of peptide powder in the vial (e.g., 2, 5, 10 mg)</div>
+        </div>
+
+        <div class="field">
+          <label for="waterMl">Bacteriostatic water added (mL)</label>
+          <input type="number" id="waterMl" value="2" min="0.1" max="10" step="0.1" inputmode="decimal">
+          <div class="hint">How much BAC water you injected into the vial</div>
+          <input type="range" id="waterSlider" min="0.5" max="5" step="0.1" value="2" style="width:100%;margin-top:10px;accent-color:var(--accent);">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);margin-top:2px;">
+            <span>0.5 mL</span><span>2.5 mL</span><span>5 mL</span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
+          <button class="btn secondary preset-btn" data-water="1" style="flex:1;min-width:60px;padding:8px 6px;font-size:12px;">1 mL</button>
+          <button class="btn secondary preset-btn" data-water="2" style="flex:1;min-width:60px;padding:8px 6px;font-size:12px;">2 mL</button>
+          <button class="btn secondary preset-btn" data-water="2.5" style="flex:1;min-width:60px;padding:8px 6px;font-size:12px;">2.5 mL</button>
+          <button class="btn secondary preset-btn" data-water="3" style="flex:1;min-width:60px;padding:8px 6px;font-size:12px;">3 mL</button>
+          <button class="btn secondary preset-btn" data-water="5" style="flex:1;min-width:60px;padding:8px 6px;font-size:12px;">5 mL</button>
+        </div>
+      </div>
+
+      <div class="input-card">
+        <h3>Step 2 · Your Dose</h3>
+        <div class="field">
+          <label for="doseInput">Desired dose per injection</label>
+          <div class="input-with-unit">
+            <input type="number" id="doseInput" value="0.25" min="0.001" step="0.005" inputmode="decimal">
+            <div class="unit-toggle" role="group" aria-label="Dose unit">
+              <button type="button" class="unit-btn" data-unit="mcg">mcg</button>
+              <button type="button" class="unit-btn active" data-unit="mg">mg</button>
+            </div>
+          </div>
+          <div class="hint">Tip: 250 mcg = 0.25 mg · 500 mcg = 0.5 mg · 1000 mcg = 1 mg</div>
+        </div>
+        <div class="field">
+          <label for="syringeSize">Syringe size</label>
+          <select id="syringeSize">
+            <option value="0.3">0.3 mL (30 unit) insulin syringe</option>
+            <option value="0.5">0.5 mL (50 unit) insulin syringe</option>
+            <option value="1" selected>1.0 mL (100 unit) insulin syringe</option>
+          </select>
+          <div class="hint">Insulin syringes: 100 units = 1 mL</div>
+        </div>
+
+        <div class="results" style="margin-top:14px;">
+          <div class="result-row">
+            <span class="result-label">Resulting concentration</span>
+            <span class="result-value large" id="resultConc">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Doses per vial</span>
+            <span class="result-value" id="dosesPerVial">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Dose conversion</span>
+            <span class="result-value" id="doseConvert">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Headline result -->
+    <div class="draw-calc" style="margin-top:clamp(16px,3vw,20px);">
+      <h3>💉 Draw this much per dose</h3>
+      <div class="draw-result-card" style="margin-top:0;">
+        <div class="draw-result-main">
+          <div>
+            <div class="draw-big-value" id="drawMl">—</div>
+            <div class="draw-big-unit">mL to draw</div>
+          </div>
+          <div class="draw-divider">=</div>
+          <div>
+            <div class="draw-big-value" id="drawIU">—</div>
+            <div class="draw-big-unit">insulin units (U-100)</div>
+          </div>
+          <div class="draw-divider">=</div>
+          <div>
+            <div class="draw-big-value" id="drawDoseMg">—</div>
+            <div class="draw-big-unit">mg <span style="opacity:0.7;">(<span id="drawDoseMcg">—</span> mcg)</span></div>
+          </div>
+        </div>
+        <div class="syringe-viz" id="syringeViz" aria-hidden="true"></div>
+        <div id="drawNote" class="info-box" style="margin-top:14px;text-align:left;">—</div>
+      </div>
+    </div>
+
+    <div class="warn-box" id="syringeWarn" style="display:none;">
+      <strong>Heads up:</strong> <span id="syringeWarnText"></span>
+    </div>
+
+    <h3 style="margin-top:clamp(20px,3vw,24px);color:var(--accent);font-size:clamp(14px,3vw,16px);">What if I had added a different amount of water?</h3>
+    <p class="panel-desc" style="margin-bottom:8px;">Reference table — for the same vial &amp; dose, here's what other water volumes would give you:</p>
+    <div class="table-wrap">
+      <table id="reconTable">
+        <thead>
+          <tr>
+            <th>BAC water added</th>
+            <th>Concentration</th>
+            <th>mL per dose</th>
+            <th>Units per dose</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="reconBody"></tbody>
+      </table>
+    </div>
+
+    <div class="info-box">
+      <strong>How the math works:</strong> concentration (mg/mL) = vial strength ÷ water added. Volume per dose (mL) = dose ÷ concentration. Insulin units = mL × 100.
+    </div>
+
+    <div class="nav-buttons">
+      <span></span>
+      <button class="btn" onclick="goToStep(1)">Next: Supplies →</button>
+    </div>
+  </section>
+
+  <!-- STEP 2: SUPPLIES -->
+  <section class="panel" data-panel="1">
+    <h2>Supplies Checklist</h2>
+    <p class="panel-desc">Tap each item to confirm you have it. Lay everything out on a clean, dry surface before starting.</p>
+
+    <ul class="checklist" id="suppliesList">
+      <li data-supply><div class="checkbox"></div><div><strong>Peptide vial</strong> — sealed, refrigerated (or per manufacturer), with intact rubber stopper</div></li>
+      <li data-supply><div class="checkbox"></div><div><strong>Bacteriostatic water</strong> (0.9% benzyl alcohol) — not sterile saline, not "sterile water for injection"</div></li>
+      <li data-supply><div class="checkbox"></div><div><strong>Drawing syringe + needle</strong> — typically 3 mL with 21-23 G, 1" needle (for drawing BAC water only)</div></li>
+      <li data-supply><div class="checkbox"></div><div><strong>Injection syringe</strong> — insulin syringe with fixed needle (29-31 G, 5/16" or 1/2")</div></li>
+      <li data-supply><div class="checkbox"></div><div><strong>Alcohol prep pads</strong> — sterile, individually wrapped (70% isopropyl)</div></li>
+      <li data-supply><div class="checkbox"></div><div><strong>Sharps container</strong> — FDA-cleared, puncture-resistant</div></li>
+      <li data-supply><div class="checkbox"></div><div><strong>Clean workspace</strong> — wiped surface, hands washed with soap for 20 sec</div></li>
+      <li data-supply><div class="checkbox"></div><div><strong>Cotton ball / gauze</strong> — for post-injection pressure</div></li>
+    </ul>
+
+    <div class="progress-bar"><div class="progress-fill" id="suppliesProgress" style="width:0%"></div></div>
+
+    <div class="warn-box">
+      <strong>Bacteriostatic water vs. sterile water:</strong> BAC water contains 0.9% benzyl alcohol, which inhibits microbial growth and lets you use the vial multiple times. Sterile water has no preservative — only safe for single-use reconstitution.
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn secondary" onclick="goToStep(0)">← Back</button>
+      <button class="btn" onclick="goToStep(2)">Next: Draw Water →</button>
+    </div>
+  </section>
+
+  <!-- STEP 3: DRAW WATER -->
+  <section class="panel" data-panel="2">
+    <h2>Draw Bacteriostatic Water</h2>
+    <p class="panel-desc">Pull the calculated volume of BAC water into a drawing syringe.</p>
+
+    <div class="grid-2">
+      <div>
+        <div class="animation-stage">
+          <svg id="animDraw" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="anim-label" id="drawLabel">Ready</div>
+        </div>
+        <div class="controls">
+          <button class="btn" onclick="playDraw()">▶ Play Animation</button>
+          <button class="btn secondary" onclick="resetDraw()">↻ Reset</button>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-swatch" style="background:var(--liquid)"></span>BAC water</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#9ca3af"></span>Air</div>
+        </div>
+      </div>
+      <div>
+        <div class="step-instructions">
+          <h4>Procedure</h4>
+          <ol>
+            <li>Wipe the BAC water vial stopper with an alcohol pad. Let it air-dry (don't blow on it).</li>
+            <li>Pull back on the drawing syringe plunger to pre-load <strong id="drawTargetVol">2.0 mL</strong> of air.</li>
+            <li>Insert the needle straight into the BAC water vial stopper. Push the air in (this equalizes pressure).</li>
+            <li>Invert the vial. Slowly pull back to <strong id="drawTargetVol2">2.0 mL</strong> of BAC water.</li>
+            <li>Tap the syringe to dislodge bubbles. Push them out and re-draw if needed.</li>
+            <li>Remove the needle straight out — keep it sterile.</li>
+          </ol>
+        </div>
+        <div class="info-box">
+          <strong>Volume from your calculator:</strong> <span id="targetVolNote">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn secondary" onclick="goToStep(1)">← Back</button>
+      <button class="btn" onclick="goToStep(3)">Next: Reconstitute →</button>
+    </div>
+  </section>
+
+  <!-- STEP 4: RECONSTITUTE -->
+  <section class="panel" data-panel="3">
+    <h2>Reconstitute the Peptide</h2>
+    <p class="panel-desc">Inject the BAC water into the peptide vial — slowly, and against the glass wall.</p>
+
+    <div class="grid-2">
+      <div>
+        <div class="animation-stage">
+          <svg id="animRecon" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="anim-label" id="reconLabel">Ready</div>
+        </div>
+        <div class="controls">
+          <button class="btn" onclick="playRecon()">▶ Play Animation</button>
+          <button class="btn secondary" onclick="resetRecon()">↻ Reset</button>
+        </div>
+      </div>
+      <div>
+        <div class="step-instructions">
+          <h4>Critical technique: angle the needle</h4>
+          <ol>
+            <li>Wipe the peptide vial stopper with alcohol. Let dry.</li>
+            <li>Insert the needle and tilt the syringe so the BAC water runs <strong>down the inner glass wall</strong> — never directly onto the powder.</li>
+            <li>Push the plunger <strong>slowly</strong> (over 5-10 seconds). Direct streams can shear the peptide.</li>
+            <li>Let the vacuum equalize. Don't withdraw plunger.</li>
+            <li>Withdraw the needle. Discard into sharps container.</li>
+          </ol>
+        </div>
+        <div class="danger-box">
+          <strong>Why "slowly + against the wall"?</strong> Many peptides are fragile peptide chains. Forceful streams or direct impact on the lyophilized cake can denature the molecule and reduce potency.
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn secondary" onclick="goToStep(2)">← Back</button>
+      <button class="btn" onclick="goToStep(4)">Next: Mix &amp; Inspect →</button>
+    </div>
+  </section>
+
+  <!-- STEP 5: MIX & INSPECT -->
+  <section class="panel" data-panel="4">
+    <h2>Dissolve, Don't Shake</h2>
+    <p class="panel-desc">Let the peptide dissolve gently. Then inspect for clarity.</p>
+
+    <div class="grid-2">
+      <div>
+        <div class="animation-stage">
+          <svg id="animMix" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="anim-label" id="mixLabel">Ready</div>
+        </div>
+        <div class="controls">
+          <button class="btn" onclick="playMix()">▶ Play Animation</button>
+          <button class="btn secondary" onclick="resetMix()">↻ Reset</button>
+        </div>
+      </div>
+      <div>
+        <div class="step-instructions">
+          <h4>Mixing technique</h4>
+          <ol>
+            <li>Set the vial upright. Wait 30-60 seconds — most peptides dissolve on contact.</li>
+            <li>If undissolved powder remains, gently <strong>roll or swirl</strong> the vial between your palms.</li>
+            <li><strong>Never shake.</strong> Shaking creates foam and shears peptide bonds.</li>
+            <li>Inspect: solution should be <strong>clear and colorless</strong>. No haze, particles, or floaters.</li>
+            <li>Label the vial: peptide name, concentration (mg/mL), reconstitution date.</li>
+            <li>Store refrigerated (typically 36-46°F / 2-8°C) unless manufacturer specifies otherwise.</li>
+          </ol>
+        </div>
+        <div class="warn-box">
+          <strong>Reject the vial if:</strong> cloudy, discolored, has floating particles, or has been frozen. Once reconstituted, most peptides are stable 28-30 days refrigerated — confirm with manufacturer.
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn secondary" onclick="goToStep(3)">← Back</button>
+      <button class="btn" onclick="goToStep(5)">Next: Inject →</button>
+    </div>
+  </section>
+
+  <!-- STEP 6: INJECT -->
+  <section class="panel" data-panel="5">
+    <h2>Subcutaneous Injection</h2>
+    <p class="panel-desc">Most peptides are dosed subQ — into the fatty layer just under the skin.</p>
+
+    <div class="grid-2">
+      <div>
+        <div class="animation-stage">
+          <svg id="animInject" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="anim-label" id="injectLabel">Ready</div>
+        </div>
+        <div class="controls">
+          <button class="btn" onclick="playInject()">▶ Play Animation</button>
+          <button class="btn secondary" onclick="resetInject()">↻ Reset</button>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-swatch" style="background:var(--skin)"></span>Skin</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#fde68a"></span>Subcutaneous fat</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#dc2626"></span>Muscle</div>
+        </div>
+      </div>
+      <div>
+        <div class="step-instructions">
+          <h4>SubQ injection — step by step</h4>
+          <ol>
+            <li><strong>Site rotation:</strong> abdomen (2 in. from navel), outer thigh, or back of arm. Rotate sites to avoid lipohypertrophy.</li>
+            <li>Wipe site with alcohol pad. Let dry completely (wet alcohol stings).</li>
+            <li>Draw your dose — pull the calculated insulin units of reconstituted peptide.</li>
+            <li>Tap out air bubbles; gently push to expel any air.</li>
+            <li>Pinch a fold of skin to lift fat away from muscle.</li>
+            <li>Insert at <strong>45-90°</strong> in one steady motion (90° if you have enough fat; 45° if very lean).</li>
+            <li>Press plunger slowly and steadily — count 5 seconds.</li>
+            <li>Hold needle in place 5 seconds, then withdraw at the same angle.</li>
+            <li>Apply gentle pressure with cotton — do <strong>not</strong> rub.</li>
+            <li>Drop syringe directly into sharps container. Never recap.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <ul class="checklist" id="injectChecklist">
+      <li data-check><div class="checkbox"></div><div>Confirmed correct peptide and concentration on label</div></li>
+      <li data-check><div class="checkbox"></div><div>Drew correct number of insulin units (no air at tip)</div></li>
+      <li data-check><div class="checkbox"></div><div>Cleaned and dried injection site</div></li>
+      <li data-check><div class="checkbox"></div><div>Rotated from previous injection site (≥1 inch away)</div></li>
+      <li data-check><div class="checkbox"></div><div>Disposed of needle in sharps container, not trash</div></li>
+    </ul>
+
+    <div class="nav-buttons">
+      <button class="btn secondary" onclick="goToStep(4)">← Back</button>
+      <button class="btn" onclick="goToStep(6)">Next: Common Errors →</button>
+    </div>
+  </section>
+
+  <!-- STEP 7: COMMON ERRORS -->
+  <section class="panel" data-panel="6">
+    <h2>Safety Checks &amp; Common Errors</h2>
+    <p class="panel-desc">Most mistakes happen in math or technique. Review before every injection.</p>
+
+    <div class="errors-grid">
+      <div class="error-card">
+        <h5>⚠ Confusing mg with mcg</h5>
+        <p>1 mg = 1000 mcg. A "250 mcg dose" is 0.25 mg, not 250 mg.</p>
+        <p class="fix">✓ Always convert to the same unit before dividing.</p>
+      </div>
+      <div class="error-card">
+        <h5>⚠ Confusing mL with insulin units</h5>
+        <p>On a 100-unit insulin syringe, 100 IU = 1 mL. So 0.1 mL = 10 IU, not 100.</p>
+        <p class="fix">✓ Multiply mL × 100 to get insulin units (for U-100 syringes).</p>
+      </div>
+      <div class="error-card">
+        <h5>⚠ Using sterile water instead of BAC water</h5>
+        <p>Sterile water lacks preservative. Multi-use vials reconstituted with it can grow bacteria.</p>
+        <p class="fix">✓ Use bacteriostatic water for any vial used over multiple days.</p>
+      </div>
+      <div class="error-card">
+        <h5>⚠ Shaking the vial</h5>
+        <p>Vigorous shaking foams the solution and shears peptide bonds, reducing potency.</p>
+        <p class="fix">✓ Swirl gently or roll between palms only.</p>
+      </div>
+      <div class="error-card">
+        <h5>⚠ Injecting BAC water directly onto powder</h5>
+        <p>A direct stream can denature delicate peptides.</p>
+        <p class="fix">✓ Aim down the inner glass wall, push slowly.</p>
+      </div>
+      <div class="error-card">
+        <h5>⚠ Skipping site rotation</h5>
+        <p>Repeat injections in the same spot cause lipohypertrophy (lumps) and erratic absorption.</p>
+        <p class="fix">✓ Rotate at least 1 inch each injection.</p>
+      </div>
+      <div class="error-card">
+        <h5>⚠ Injecting wet alcohol</h5>
+        <p>Stings, increases tissue irritation, and may inactivate some peptides at the site.</p>
+        <p class="fix">✓ Let the prep pad fully air-dry first.</p>
+      </div>
+      <div class="error-card">
+        <h5>⚠ Recapping needles</h5>
+        <p>Leading cause of accidental needle-stick injuries.</p>
+        <p class="fix">✓ Drop directly into sharps container, no recap.</p>
+      </div>
+      <div class="error-card">
+        <h5>⚠ Storing reconstituted vials at room temperature</h5>
+        <p>Most reconstituted peptides degrade above ~46°F (8°C).</p>
+        <p class="fix">✓ Refrigerate; do not freeze unless specified.</p>
+      </div>
+      <div class="error-card">
+        <h5>⚠ Using a vial past stability window</h5>
+        <p>Reconstituted peptides typically last 28-30 days refrigerated.</p>
+        <p class="fix">✓ Label with reconstitution date; discard at expiry.</p>
+      </div>
+      <div class="error-card">
+        <h5>⚠ Hitting muscle on subQ injection</h5>
+        <p>Wrong absorption profile, more painful, possible bruising.</p>
+        <p class="fix">✓ Pinch fat fold; use 45° if lean. Use 5/16" or 1/2" needles.</p>
+      </div>
+      <div class="error-card">
+        <h5>⚠ Drawing through a coring stopper</h5>
+        <p>Repeatedly punching the same spot can dislodge rubber bits into the solution.</p>
+        <p class="fix">✓ Insert at slight angle, vary entry point on the stopper.</p>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:20px;">
+      <strong>When to stop and contact a clinician:</strong> persistent injection-site reaction, allergic symptoms (hives, swelling, trouble breathing), persistent or unusual side effects, or any sign of vial contamination.
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn secondary" onclick="goToStep(5)">← Back</button>
+      <button class="btn" onclick="goToStep(0)">↻ Start Over</button>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ---------- STEP NAVIGATION ---------- */
+function goToStep(idx) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.panel[data-panel="${idx}"]`).classList.add('active');
+  document.querySelector(`.step-btn[data-step="${idx}"]`).classList.add('active');
+  // mark previous as completed
+  document.querySelectorAll('.step-btn').forEach((b, i) => {
+    if (i < idx) b.classList.add('completed'); else b.classList.remove('completed');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.step-btn').forEach(b => {
+  b.addEventListener('click', () => goToStep(parseInt(b.dataset.step)));
+});
+
+/* ---------- WATER-BASED DOSAGE CALCULATOR ---------- */
+
+// Render a 1 mL (100 IU) insulin-syringe visualization showing where to pull the plunger
+function renderSyringeViz(mlToDraw) {
+  if (!isFinite(mlToDraw) || mlToDraw < 0) {
+    document.getElementById('syringeViz').innerHTML = '';
+    return;
+  }
+  // Always 1 mL / 100 IU U-100 insulin syringe
+  const max = 1.0;
+  const totalIU = 100;
+
+  const fillFrac = Math.max(0, Math.min(1, mlToDraw / max));
+  const overflow = mlToDraw > max;
+
+  // Tick marks every 10 IU (major) and every 5 IU (minor) — 20 minor ticks
+  const minorTicks = 20;
+  let tickMarks = '';
+  for (let i = 0; i <= minorTicks; i++) {
+    const pct = i * (100 / minorTicks);
+    const isMajor = i % 2 === 0;
+    const x = 15 + pct * 2.7;
+    tickMarks += `<line x1="${x}" y1="${isMajor ? 18 : 22}" x2="${x}" y2="32" stroke="#94a3b8" stroke-width="${isMajor ? 1.2 : 0.6}"/>`;
+    if (isMajor) {
+      const iuVal = (i / minorTicks) * totalIU;
+      tickMarks += `<text x="${x}" y="14" font-size="8" fill="#94a3b8" text-anchor="middle">${iuVal}</text>`;
+    }
+  }
+
+  const fillWidth = fillFrac * 270;
+  const svg = `
+    <svg viewBox="0 0 360 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <rect x="15" y="28" width="270" height="14" fill="#1a2332" stroke="#94a3b8" stroke-width="1" rx="2"/>
+      <rect x="16" y="29" width="${Math.max(0, fillWidth - 1)}" height="12" fill="${overflow ? '#f87171' : '#7dd3fc'}" opacity="0.85" rx="1"/>
+      ${tickMarks}
+      <rect x="${15 + fillWidth}" y="24" width="6" height="22" fill="#5eead4"/>
+      <rect x="${21 + fillWidth}" y="32" width="${Math.max(0, 300 - fillWidth - 22)}" height="6" fill="#5eead4" opacity="0.7"/>
+      <rect x="300" y="20" width="14" height="30" fill="#5eead4" rx="2"/>
+      <rect x="0" y="33" width="14" height="4" fill="#94a3b8"/>
+      <text x="285" y="55" font-size="9" fill="#94a3b8" text-anchor="end">1 mL syringe (100 IU)</text>
+      <line x1="${15 + fillWidth}" y1="22" x2="${15 + fillWidth}" y2="48" stroke="${overflow ? '#f87171' : '#fbbf24'}" stroke-width="1.5" stroke-dasharray="2,2"/>
+      <text x="${Math.min(345, 15 + fillWidth)}" y="58" font-size="9" fill="${overflow ? '#f87171' : '#fbbf24'}" text-anchor="middle" font-weight="700">${(mlToDraw * 100).toFixed(1)} IU${overflow ? ' (over!)' : ''}</text>
+    </svg>
+  `;
+  document.getElementById('syringeViz').innerHTML = svg;
+}
+
+// Reference-table water volumes
+const WATER_REFERENCES = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5];
+
+function calc() {
+  const vial = parseFloat(document.getElementById('vialMg').value) || 0;
+  const water = parseFloat(document.getElementById('waterMl').value) || 0;
+  // Convert dose input to mg (internal unit) based on selected unit
+  const doseRaw = parseFloat(document.getElementById('doseInput').value) || 0;
+  const doseUnit = document.querySelector('.unit-btn.active')?.dataset.unit || 'mcg';
+  const dose = doseUnit === 'mcg' ? doseRaw / 1000 : doseRaw;
+  const syringeMax = parseFloat(document.getElementById('syringeSize').value);
+
+  const concentration = (vial > 0 && water > 0) ? vial / water : 0; // mg/mL
+  const mlToDraw = (concentration > 0 && dose > 0) ? dose / concentration : 0;
+  const iuToDraw = mlToDraw * 100;
+  const mcg = dose * 1000;
+  const dosesPerVial = (vial > 0 && dose > 0) ? Math.floor(vial / dose) : 0;
+
+  // Concentration display
+  document.getElementById('resultConc').textContent =
+    concentration > 0 ? `${concentration.toFixed(2)} mg/mL` : '—';
+
+  // Doses per vial
+  document.getElementById('dosesPerVial').textContent =
+    dosesPerVial > 0 ? `${dosesPerVial}×` : '—';
+
+  // Conversion
+  document.getElementById('doseConvert').textContent =
+    dose > 0 ? `${dose} mg = ${mcg.toFixed(0)} mcg` : '—';
+
+  // Headline draw values
+  const drawMlEl = document.getElementById('drawMl');
+  const drawIUEl = document.getElementById('drawIU');
+  const drawMcgEl = document.getElementById('drawDoseMcg');
+  const drawMgEl = document.getElementById('drawDoseMg');
+  const note = document.getElementById('drawNote');
+
+  // Format helpers
+  const fmtMcg = (v) => v < 10 ? v.toFixed(1) : v.toFixed(0);
+  const fmtMg = (v) => {
+    if (v >= 1) return (+v.toFixed(2)).toString();
+    if (v >= 0.01) return (+v.toFixed(3)).toString();
+    return (+v.toFixed(4)).toString();
+  };
+
+  if (mlToDraw <= 0 || !isFinite(mlToDraw)) {
+    drawMlEl.textContent = '—';
+    drawIUEl.textContent = '—';
+    drawMcgEl.textContent = '—';
+    drawMgEl.textContent = '—';
+    note.textContent = 'Enter vial strength, water added, and your dose to calculate.';
+    document.getElementById('syringeViz').innerHTML = '';
+  } else {
+    drawMlEl.textContent = mlToDraw < 0.01 ? mlToDraw.toFixed(4) : mlToDraw.toFixed(3);
+    drawIUEl.textContent = iuToDraw < 10 ? iuToDraw.toFixed(1) : iuToDraw.toFixed(0);
+    // Show dose in both mcg (primary) and mg (secondary)
+    drawMcgEl.textContent = fmtMcg(mcg);
+    drawMgEl.textContent = fmtMg(dose);
+
+    let msg = `With <strong>${vial} mg</strong> reconstituted in <strong>${water} mL</strong> of BAC water, your concentration is <strong>${concentration.toFixed(2)} mg/mL</strong>. To inject <strong>${dose} mg (${mcg.toFixed(0)} mcg)</strong>, draw <strong>${mlToDraw.toFixed(3)} mL = ${iuToDraw.toFixed(1)} units</strong> on a U-100 insulin syringe.`;
+    if (iuToDraw < 2) {
+      msg += `<br><span style="color:var(--warn)">⚠ Very small volume (${iuToDraw.toFixed(1)} IU) — hard to measure precisely. Consider adding more water for a lower concentration.</span>`;
+    } else if (iuToDraw > 100) {
+      msg += `<br><span style="color:var(--danger)">⚠ Exceeds 1 mL syringe. Add less water for a higher concentration, or split across multiple injections.</span>`;
+    } else if (iuToDraw > syringeMax * 100) {
+      msg += `<br><span style="color:var(--warn)">⚠ Volume exceeds your selected ${syringeMax} mL syringe. Use a larger syringe or a higher concentration.</span>`;
+    } else {
+      msg += `<br><span style="color:var(--success)">✓ Fits comfortably in your ${syringeMax} mL syringe.</span>`;
+    }
+    note.innerHTML = msg;
+    renderSyringeViz(mlToDraw);
+  }
+
+  // Reference table — what other water volumes would do
+  const tbody = document.getElementById('reconBody');
+  tbody.innerHTML = '';
+  WATER_REFERENCES.forEach(w => {
+    const conc = vial > 0 ? vial / w : 0;
+    const volPerDose = (conc > 0 && dose > 0) ? dose / conc : 0;
+    const unitsPerDose = volPerDose * 100;
+    const tr = document.createElement('tr');
+    if (Math.abs(w - water) < 0.05) tr.classList.add('recommended');
+
+    let notes = '';
+    if (volPerDose > 1) notes = '⚠ exceeds 1 mL syringe';
+    else if (unitsPerDose < 2 && unitsPerDose > 0) notes = '⚠ very small — hard to dose';
+    else if (unitsPerDose < 10) notes = 'small volume, precise tip';
+    else if (unitsPerDose > 50) notes = 'fits 1 mL syringe';
+    else notes = 'fits 0.5 mL syringe';
+
+    tr.innerHTML = `
+      <td><strong>${w} mL</strong></td>
+      <td class="numeric">${conc > 0 ? conc.toFixed(2) + ' mg/mL' : '—'}</td>
+      <td class="numeric">${volPerDose > 0 ? volPerDose.toFixed(3) : '—'}</td>
+      <td class="numeric">${unitsPerDose > 0 ? unitsPerDose.toFixed(1) + ' IU' : '—'}</td>
+      <td style="color:var(--text-dim);font-size:clamp(11px,2.3vw,12px);">${notes}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Top-level syringe warning (independent of selected water)
+  if (mlToDraw > 0 && mlToDraw > syringeMax) {
+    document.getElementById('syringeWarn').style.display = 'block';
+    document.getElementById('syringeWarnText').textContent =
+      `Your dose (${mlToDraw.toFixed(3)} mL) exceeds your selected ${syringeMax} mL syringe. Add less BAC water (higher concentration) or pick a larger syringe.`;
+  } else {
+    document.getElementById('syringeWarn').style.display = 'none';
+  }
+
+  // Keep slider in sync with number input
+  const slider = document.getElementById('waterSlider');
+  if (slider && document.activeElement !== slider && water >= parseFloat(slider.min) && water <= parseFloat(slider.max)) {
+    slider.value = water;
+  }
+
+  // Update the "Draw Water" step instructions with the user's actual water amount
+  const drawTarget = water > 0 ? water.toFixed(2) + ' mL' : '— mL';
+  const dt1 = document.getElementById('drawTargetVol');
+  const dt2 = document.getElementById('drawTargetVol2');
+  const targetNote = document.getElementById('targetVolNote');
+  if (dt1) dt1.textContent = drawTarget;
+  if (dt2) dt2.textContent = drawTarget;
+  if (targetNote) {
+    if (vial > 0 && water > 0 && dose > 0) {
+      targetNote.textContent = `Draw ${water.toFixed(2)} mL of BAC water. After mixing with ${vial} mg of peptide, you'll have a ${concentration.toFixed(2)} mg/mL solution — that's ${dosesPerVial} doses of ${dose} mg (${iuToDraw.toFixed(1)} units each).`;
+    } else {
+      targetNote.textContent = 'Enter your vial strength, water, and dose on the Calculator step.';
+    }
+  }
+}
+
+// Wiring
+document.getElementById('vialMg').addEventListener('input', calc);
+document.getElementById('doseInput').addEventListener('input', calc);
+
+// Unit toggle: convert the displayed value when switching units
+document.querySelectorAll('.unit-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const newUnit = btn.dataset.unit;
+    const currentUnit = document.querySelector('.unit-btn.active').dataset.unit;
+    if (newUnit === currentUnit) return;
+
+    const input = document.getElementById('doseInput');
+    const currentVal = parseFloat(input.value) || 0;
+
+    // Convert displayed value
+    let newVal;
+    if (currentUnit === 'mcg' && newUnit === 'mg') {
+      newVal = currentVal / 1000;
+      input.step = '0.005';
+    } else {
+      newVal = currentVal * 1000;
+      input.step = '1';
+    }
+    // Trim insignificant trailing zeros
+    input.value = parseFloat(newVal.toFixed(6));
+
+    document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    calc();
+  });
+});
+document.getElementById('syringeSize').addEventListener('change', calc);
+document.getElementById('waterMl').addEventListener('input', calc);
+
+// Slider
+document.getElementById('waterSlider').addEventListener('input', (e) => {
+  document.getElementById('waterMl').value = parseFloat(e.target.value).toFixed(1);
+  calc();
+});
+
+// Quick-preset buttons
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const v = btn.dataset.water;
+    document.getElementById('waterMl').value = v;
+    document.getElementById('waterSlider').value = v;
+    calc();
+  });
+});
+
+calc();
+
+/* ---------- SUPPLIES CHECKLIST ---------- */
+function setupChecklist(listId, progressId) {
+  const items = document.querySelectorAll(`#${listId} li`);
+  items.forEach(li => {
+    li.addEventListener('click', () => {
+      li.classList.toggle('checked');
+      if (progressId) {
+        const checked = document.querySelectorAll(`#${listId} li.checked`).length;
+        document.getElementById(progressId).style.width = (checked / items.length * 100) + '%';
+      }
+    });
+  });
+}
+setupChecklist('suppliesList', 'suppliesProgress');
+setupChecklist('injectChecklist', null);
+
+/* ---------- ANIMATION: DRAW BAC WATER ---------- */
+function renderDraw(progress, plungerProgress) {
+  // progress: 0 = needle out, 0.3 = needle in, 0.6 = inverted, 1 = withdrawn
+  // plungerProgress: 0 = empty, 1 = full of water
+  const svg = document.getElementById('animDraw');
+  // Vial position
+  const inverted = progress >= 0.5;
+  const vialY = inverted ? 230 : 70;
+  const stopperY = inverted ? 222 : 88;
+
+  // Syringe position (above or below vial)
+  const sy = inverted ? 130 : 230;
+  const needleTipY = inverted ? sy + 30 : sy - 30;
+
+  // Liquid in vial
+  const totalVialH = 100;
+  const remainingLiquid = (1 - plungerProgress * 0.6); // simulating water leaving
+  const liquidH = totalVialH * remainingLiquid;
+  const liquidYTop = inverted ? vialY + (totalVialH - liquidH) + 10 : vialY + 10;
+
+  // Plunger position
+  const plungerY = sy + 10 - plungerProgress * 80;
+
+  // Liquid in syringe
+  const syrLiquidH = plungerProgress * 80;
+  const syrLiquidY = sy + 10 - syrLiquidH;
+
+  svg.innerHTML = `
+    <!-- BAC water vial -->
+    <g transform="translate(150, ${vialY})">
+      <rect x="0" y="10" width="100" height="100" rx="4" fill="#1a2332" stroke="#5eead4" stroke-width="2" opacity="0.4"/>
+      <rect x="0" y="${liquidYTop - vialY}" width="100" height="${liquidH}" rx="4" fill="#7dd3fc" opacity="0.7"/>
+      <rect x="20" y="0" width="60" height="14" rx="2" fill="#4b5563"/>
+      <rect x="15" y="${inverted ? 110 : 8}" width="70" height="6" fill="#9ca3af"/>
+      <text x="50" y="${inverted ? 130 : -4}" text-anchor="middle" fill="#94a3b8" font-size="11">BAC Water</text>
+    </g>
+
+    <!-- Syringe -->
+    <g transform="translate(180, ${sy})">
+      <!-- needle -->
+      <line x1="20" y1="${inverted ? 0 : 20}" x2="20" y2="${inverted ? -30 : 50}" stroke="#94a3b8" stroke-width="1.5"/>
+      <!-- syringe body -->
+      <rect x="5" y="${inverted ? 0 : -80}" width="30" height="80" fill="#1a2332" stroke="#94a3b8" stroke-width="1.5"/>
+      <!-- liquid in syringe -->
+      <rect x="6" y="${inverted ? syrLiquidY - sy : -syrLiquidH}" width="28" height="${syrLiquidH}" fill="#7dd3fc" opacity="0.8"/>
+      <!-- plunger -->
+      <rect x="3" y="${inverted ? plungerY - sy : -80 + (1-plungerProgress)*80 - 6}" width="34" height="6" fill="#5eead4"/>
+      <rect x="18" y="${inverted ? plungerY - sy + 6 : -80 + (1-plungerProgress)*80}" width="4" height="40" fill="#5eead4"/>
+    </g>
+  `;
+}
+
+let drawTimer;
+function playDraw() {
+  resetDraw();
+  const label = document.getElementById('drawLabel');
+  let t = 0;
+  const steps = [
+    { until: 20, label: '1. Wipe stopper, let dry', plunger: 0, prog: 0 },
+    { until: 50, label: '2. Pre-load with air, insert needle', plunger: 0.4, prog: 0.3 },
+    { until: 70, label: '3. Invert vial', plunger: 0.4, prog: 0.6 },
+    { until: 95, label: '4. Pull plunger to draw water', plunger: 1, prog: 0.7 },
+    { until: 110, label: '5. Tap out bubbles', plunger: 1, prog: 0.7 },
+    { until: 120, label: '✓ Done — withdraw needle', plunger: 1, prog: 1 }
+  ];
+  drawTimer = setInterval(() => {
+    t++;
+    let s = steps.find(x => t <= x.until);
+    if (!s) { clearInterval(drawTimer); return; }
+    label.textContent = s.label;
+    // Smoothly interpolate
+    const prev = steps[Math.max(0, steps.indexOf(s) - 1)];
+    const startT = prev === s ? 0 : prev.until;
+    const localT = (t - startT) / (s.until - startT);
+    const plungerNow = (prev.plunger || 0) + (s.plunger - (prev.plunger || 0)) * localT;
+    const progNow = (prev.prog || 0) + (s.prog - (prev.prog || 0)) * localT;
+    renderDraw(progNow, plungerNow);
+  }, 60);
+}
+function resetDraw() {
+  clearInterval(drawTimer);
+  document.getElementById('drawLabel').textContent = 'Ready';
+  renderDraw(0, 0);
+}
+resetDraw();
+
+/* ---------- ANIMATION: RECONSTITUTE ---------- */
+function renderRecon(progress, waterLevel) {
+  const svg = document.getElementById('animRecon');
+  // Peptide vial sits upright
+  // Syringe inserted from above at a tilt
+  const tilt = progress > 0.1 && progress < 0.95 ? 15 : 0;
+  const syrY = 60 - (progress < 0.1 ? 40 : 0);
+  const plungerProgress = Math.max(0, Math.min(1, (progress - 0.2) / 0.7));
+
+  // Powder cake at bottom
+  const powderOpacity = Math.max(0, 1 - waterLevel * 1.5);
+
+  svg.innerHTML = `
+    <!-- Peptide vial -->
+    <g transform="translate(150, 90)">
+      <rect x="0" y="10" width="100" height="140" rx="4" fill="#1a2332" stroke="#fbbf24" stroke-width="2" opacity="0.4"/>
+      <!-- water inside -->
+      <rect x="2" y="${150 - waterLevel * 130}" width="96" height="${waterLevel * 130}" fill="#7dd3fc" opacity="0.6"/>
+      <!-- water streaming down wall (during injection) -->
+      ${progress > 0.25 && progress < 0.85 ? `<path d="M 25 30 Q 20 80 22 145" stroke="#7dd3fc" stroke-width="3" fill="none" opacity="0.7"/>` : ''}
+      <!-- powder cake -->
+      <ellipse cx="50" cy="148" rx="40" ry="6" fill="#fbbf24" opacity="${powderOpacity * 0.7}"/>
+      <rect x="15" y="142" width="70" height="8" fill="#fbbf24" opacity="${powderOpacity * 0.5}" rx="2"/>
+      <!-- dissolving particles -->
+      ${waterLevel > 0.3 && waterLevel < 0.95 ? `
+        <circle cx="30" cy="100" r="2" fill="#fbbf24" opacity="0.4"/>
+        <circle cx="60" cy="120" r="1.5" fill="#fbbf24" opacity="0.4"/>
+        <circle cx="75" cy="90" r="1.8" fill="#fbbf24" opacity="0.4"/>
+      ` : ''}
+      <!-- stopper -->
+      <rect x="20" y="0" width="60" height="14" rx="2" fill="#4b5563"/>
+      <rect x="15" y="8" width="70" height="6" fill="#9ca3af"/>
+      <text x="50" y="170" text-anchor="middle" fill="#94a3b8" font-size="11">Peptide Vial</text>
+    </g>
+
+    <!-- Syringe (tilted to direct water at wall) -->
+    <g transform="translate(${165 - tilt*0.5}, ${syrY}) rotate(${-tilt} 35 80)">
+      <line x1="35" y1="80" x2="35" y2="120" stroke="#94a3b8" stroke-width="1.5"/>
+      <rect x="20" y="0" width="30" height="80" fill="#1a2332" stroke="#94a3b8" stroke-width="1.5"/>
+      <rect x="21" y="${plungerProgress * 70}" width="28" height="${(1 - plungerProgress) * 70}" fill="#7dd3fc" opacity="0.7"/>
+      <rect x="18" y="${plungerProgress * 70 - 6}" width="34" height="6" fill="#5eead4"/>
+      <rect x="33" y="${plungerProgress * 70 - 50}" width="4" height="50" fill="#5eead4"/>
+    </g>
+  `;
+}
+
+let reconTimer;
+function playRecon() {
+  resetRecon();
+  const label = document.getElementById('reconLabel');
+  let t = 0;
+  const steps = [
+    { until: 10, label: '1. Wipe peptide vial stopper', prog: 0, water: 0 },
+    { until: 25, label: '2. Insert needle, tilt to angle at wall', prog: 0.15, water: 0 },
+    { until: 80, label: '3. Push plunger SLOWLY — water runs down wall', prog: 0.7, water: 0.7 },
+    { until: 95, label: '4. Equalize, withdraw needle', prog: 1, water: 0.75 },
+    { until: 110, label: '✓ Reconstitution complete', prog: 1, water: 0.75 }
+  ];
+  reconTimer = setInterval(() => {
+    t++;
+    let s = steps.find(x => t <= x.until);
+    if (!s) { clearInterval(reconTimer); return; }
+    label.textContent = s.label;
+    const idx = steps.indexOf(s);
+    const prev = idx > 0 ? steps[idx - 1] : { until: 0, prog: 0, water: 0 };
+    const localT = (t - prev.until) / (s.until - prev.until);
+    const progNow = prev.prog + (s.prog - prev.prog) * localT;
+    const waterNow = prev.water + (s.water - prev.water) * localT;
+    renderRecon(progNow, waterNow);
+  }, 60);
+}
+function resetRecon() {
+  clearInterval(reconTimer);
+  document.getElementById('reconLabel').textContent = 'Ready';
+  renderRecon(0, 0);
+}
+resetRecon();
+
+/* ---------- ANIMATION: MIX ---------- */
+function renderMix(t, dissolved) {
+  const svg = document.getElementById('animMix');
+  // Swirl: vial tilts left/right
+  const tilt = Math.sin(t / 8) * 12;
+  const cx = 200, cy = 180;
+
+  // Particles dissolving
+  const numParticles = Math.max(0, Math.round(20 * (1 - dissolved)));
+  let particles = '';
+  for (let i = 0; i < numParticles; i++) {
+    const angle = (i / numParticles) * Math.PI * 2 + t / 10;
+    const radius = 25 + Math.sin(t/5 + i) * 8;
+    const px = cx + Math.cos(angle) * radius;
+    const py = cy + Math.sin(angle) * radius * 0.7;
+    particles += `<circle cx="${px}" cy="${py}" r="${1.5 + (1-dissolved)*1}" fill="#fbbf24" opacity="${0.3 + (1-dissolved)*0.4}"/>`;
+  }
+
+  svg.innerHTML = `
+    <g transform="rotate(${tilt} 200 180)">
+      <g transform="translate(150, 90)">
+        <rect x="0" y="10" width="100" height="140" rx="4" fill="#1a2332" stroke="#fbbf24" stroke-width="2" opacity="0.4"/>
+        <!-- liquid (clearing as dissolved increases) -->
+        <rect x="2" y="20" width="96" height="125" fill="#7dd3fc" opacity="${0.3 + dissolved * 0.4}"/>
+        ${particles}
+        <rect x="20" y="0" width="60" height="14" rx="2" fill="#4b5563"/>
+        <rect x="15" y="8" width="70" height="6" fill="#9ca3af"/>
+      </g>
+    </g>
+    <text x="200" y="320" text-anchor="middle" fill="#94a3b8" font-size="12">${dissolved > 0.95 ? 'Clear, colorless solution ✓' : 'Dissolving...'}</text>
+  `;
+}
+
+let mixTimer, mixT = 0;
+function playMix() {
+  resetMix();
+  const label = document.getElementById('mixLabel');
+  mixTimer = setInterval(() => {
+    mixT++;
+    let dissolved = Math.min(1, mixT / 80);
+    if (mixT < 20) label.textContent = '1. Sit upright 30-60 sec';
+    else if (mixT < 70) label.textContent = '2. Roll/swirl gently — never shake';
+    else if (mixT < 100) label.textContent = '3. Inspect for clarity';
+    else { label.textContent = '✓ Ready to label & store'; clearInterval(mixTimer); }
+    renderMix(mixT, dissolved);
+  }, 60);
+}
+function resetMix() {
+  clearInterval(mixTimer);
+  mixT = 0;
+  document.getElementById('mixLabel').textContent = 'Ready';
+  renderMix(0, 0);
+}
+resetMix();
+
+/* ---------- ANIMATION: SUBQ INJECTION ---------- */
+function renderInject(progress, plungerProg) {
+  // progress: 0 = above, 0.2 = pinch, 0.4 = insert, 0.7 = injecting, 1 = withdrawn
+  const svg = document.getElementById('animInject');
+
+  // Skin layers (cross-section)
+  const skinTop = 200;
+  const fatTop = 220;
+  const muscleTop = 290;
+
+  // Pinch = lift fat
+  const pinch = progress >= 0.15 && progress <= 0.95;
+  const fatLift = pinch ? 30 : 0;
+  const skinShape = pinch
+    ? `M 60 ${skinTop} Q 130 ${skinTop - 50} 200 ${skinTop - fatLift} Q 270 ${skinTop - 50} 340 ${skinTop} L 340 ${fatTop} Q 270 ${fatTop - 40} 200 ${fatTop - fatLift} Q 130 ${fatTop - 40} 60 ${fatTop} Z`
+    : `M 60 ${skinTop} L 340 ${skinTop} L 340 ${fatTop} L 60 ${fatTop} Z`;
+  const fatShape = pinch
+    ? `M 60 ${fatTop} Q 130 ${fatTop - 40} 200 ${fatTop - fatLift} Q 270 ${fatTop - 40} 340 ${fatTop} L 340 ${muscleTop} L 60 ${muscleTop} Z`
+    : `M 60 ${fatTop} L 340 ${fatTop} L 340 ${muscleTop} L 60 ${muscleTop} Z`;
+
+  // Geometry: 45° injection, needle pointing down-right from upper-left
+  const dirX = Math.sin(Math.PI / 4); // 0.707
+  const dirY = Math.cos(Math.PI / 4); // 0.707
+
+  // Entry point on skin
+  const entryX = 200;
+  const entryY = pinch ? (skinTop - fatLift) : skinTop;
+
+  // Needle properties
+  const needleLen = 60;       // total visible needle length — long enough to keep body well above skin
+  const hoverGap = 30;        // distance the tip hovers above skin before insertion
+  const depthInFat = 18;      // how deep the tip goes into the fat layer
+
+  // Insertion progress along needle axis: -hoverGap (above) to +depthInFat (in)
+  let insertion;
+  if (progress < 0.15) {
+    insertion = -hoverGap;
+  } else if (progress < 0.35) {
+    // approach skin
+    const t = (progress - 0.15) / 0.2;
+    insertion = -hoverGap + t * (hoverGap * 0.6);
+  } else if (progress < 0.55) {
+    // pierce
+    const t = (progress - 0.35) / 0.2;
+    insertion = -hoverGap * 0.4 + t * (hoverGap * 0.4 + depthInFat);
+  } else if (progress < 0.85) {
+    insertion = depthInFat; // hold while injecting
+  } else if (progress < 0.98) {
+    // withdraw
+    const t = (progress - 0.85) / 0.13;
+    insertion = depthInFat - t * (depthInFat + hoverGap);
+  } else {
+    insertion = -hoverGap;
+  }
+
+  // Tip position
+  const tipX = entryX + insertion * dirX;
+  const tipY = entryY + insertion * dirY;
+  // Base of needle (where hub meets syringe body)
+  const baseX = tipX - needleLen * dirX;
+  const baseY = tipY - needleLen * dirY;
+
+  const inserted = insertion > 0;
+  const liquidR = plungerProg * 22;
+  // Barrel is FIXED above the hub. Only the plunger disk moves inside it.
+  const barrelTop = -70;       // top of barrel in local coords (above origin/hub)
+  const barrelHeight = 60;
+  const plungerInside = barrelTop + plungerProg * (barrelHeight - 6); // y of plunger disk inside barrel
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fbbf94"/>
+        <stop offset="100%" stop-color="#f5d5b1"/>
+      </linearGradient>
+    </defs>
+
+    <!-- muscle -->
+    <rect x="60" y="${muscleTop}" width="280" height="60" fill="#dc2626" opacity="0.85"/>
+    <text x="350" y="${muscleTop + 30}" fill="#fca5a5" font-size="11" text-anchor="end">Muscle</text>
+
+    <!-- fat -->
+    <path d="${fatShape}" fill="#fde68a"/>
+    <text x="350" y="${(fatTop + muscleTop) / 2}" fill="#fbbf24" font-size="11" text-anchor="end">SubQ Fat</text>
+
+    <!-- needle portion BELOW skin (drawn underneath skin so the in-skin portion shows correctly) -->
+    ${inserted ? `<line x1="${entryX}" y1="${entryY}" x2="${tipX}" y2="${tipY}" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>` : ''}
+
+    <!-- liquid bolus dispersing in fat -->
+    ${plungerProg > 0 && inserted ? `<circle cx="${tipX + dirX*4}" cy="${tipY + dirY*4}" r="${liquidR}" fill="#7dd3fc" opacity="0.5"/>` : ''}
+
+    <!-- skin (drawn over the in-skin needle portion) -->
+    <path d="${skinShape}" fill="url(#skinGrad)"/>
+    <text x="350" y="${skinTop + 12}" fill="#92400e" font-size="11" text-anchor="end">Skin</text>
+
+    <!-- pinching fingers indicator -->
+    ${pinch ? `
+      <circle cx="80" cy="${skinTop - 5}" r="14" fill="#f5d5b1" stroke="#92400e" stroke-width="1"/>
+      <circle cx="320" cy="${skinTop - 5}" r="14" fill="#f5d5b1" stroke="#92400e" stroke-width="1"/>
+    ` : ''}
+
+    <!-- needle portion ABOVE skin: from base to (entry point if inserted, else tip) -->
+    <line x1="${baseX}" y1="${baseY}" x2="${inserted ? entryX : tipX}" y2="${inserted ? entryY : tipY}" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- syringe body anchored at the needle base, rotated to match 45° angle.
+         Barrel is FIXED above the hub - only the plunger slides inside it. Body stays clear of the skin. -->
+    <g transform="translate(${baseX}, ${baseY}) rotate(-45)">
+      <!-- hub (between body and needle) -->
+      <rect x="-7" y="-6" width="14" height="6" fill="#94a3b8"/>
+      <!-- syringe barrel (fixed position) -->
+      <rect x="-15" y="${barrelTop}" width="30" height="${barrelHeight}" fill="#1a2332" stroke="#94a3b8" stroke-width="1.5"/>
+      <!-- liquid remaining in barrel (below the plunger disk) -->
+      <rect x="-14" y="${plungerInside + 4}" width="28" height="${barrelTop + barrelHeight - plungerInside - 4 - 1}" fill="#7dd3fc" opacity="0.7"/>
+      <!-- plunger disk inside barrel -->
+      <rect x="-15" y="${plungerInside}" width="30" height="4" fill="#5eead4"/>
+      <!-- plunger shaft (extends UP out of the barrel) -->
+      <rect x="-2" y="${plungerInside - 50}" width="4" height="50" fill="#5eead4"/>
+      <!-- thumb pad on top of plunger -->
+      <rect x="-18" y="${plungerInside - 56}" width="36" height="6" fill="#5eead4"/>
+    </g>
+  `;
+}
+
+let injectTimer;
+function playInject() {
+  resetInject();
+  const label = document.getElementById('injectLabel');
+  let t = 0;
+  const steps = [
+    { until: 15, label: '1. Clean site, let alcohol dry', prog: 0, plunger: 0 },
+    { until: 30, label: '2. Pinch fold of skin to lift fat', prog: 0.2, plunger: 0 },
+    { until: 45, label: '3. Insert at 45-90° in one motion', prog: 0.5, plunger: 0 },
+    { until: 90, label: '4. Press plunger slowly (5 sec)', prog: 0.7, plunger: 1 },
+    { until: 105, label: '5. Hold 5 sec, then withdraw', prog: 0.85, plunger: 1 },
+    { until: 120, label: '6. Apply pressure, dispose in sharps', prog: 1, plunger: 1 }
+  ];
+  injectTimer = setInterval(() => {
+    t++;
+    let s = steps.find(x => t <= x.until);
+    if (!s) { clearInterval(injectTimer); return; }
+    label.textContent = s.label;
+    const idx = steps.indexOf(s);
+    const prev = idx > 0 ? steps[idx - 1] : { until: 0, prog: 0, plunger: 0 };
+    const localT = (t - prev.until) / (s.until - prev.until);
+    const progNow = prev.prog + (s.prog - prev.prog) * localT;
+    const plungerNow = prev.plunger + (s.plunger - prev.plunger) * localT;
+    renderInject(progNow, plungerNow);
+  }, 60);
+}
+function resetInject() {
+  clearInterval(injectTimer);
+  document.getElementById('injectLabel').textContent = 'Ready';
+  renderInject(0, 0);
+}
+resetInject();
+</script>
+</body>
+</html>
